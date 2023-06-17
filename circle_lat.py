@@ -18,7 +18,7 @@ def generate_circle_points(radius, n_points):
     # calculate number of points for circle and edges relative to length of area
     full_length = (7/4)*np.pi*radius + 2*radius
     n_edge = int(((radius)/full_length) * n_points)
-    n_circle = n_points - n_edge
+    n_circle = n_points - 2*n_edge
     
     # Generate n_circle points evenly spaced around circle area
     angles = np.linspace(np.pi, -3/4*np.pi, n_circle)
@@ -27,10 +27,10 @@ def generate_circle_points(radius, n_points):
     points = list(zip(circle_xs, circle_ys))
 
     # Generate n_edge points evenly spaced along the edges
-    edge1 = generate_line_points((circle_xs[-1], circle_ys[-1]), (0,0), n_edge)
-    edge2 = generate_line_points((-radius, 0), (0,0), n_edge)
-    points.extend(edge1)
-    points.extend(edge2)
+    edge1 = generate_line_points((circle_xs[-1], circle_ys[-1]), (0,0), n_edge+1)
+    edge2 = generate_line_points((-radius, 0), (0,0), n_edge+2)
+    points.extend(edge1[1:])
+    points.extend(edge2[1:-1])
     
      # add radius to make all coordinates > 0
     return np.array(points) + radius
