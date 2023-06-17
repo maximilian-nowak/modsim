@@ -37,7 +37,9 @@ def generate_circle_points(radius, n_points):
 
 # Generate points along a circle with a cut-out piece of 45 degree
 points = generate_circle_points(1200, 50)
+print(points.shape)
 
+# Plot results
 plt.gca().set_aspect('equal', adjustable='box')  # To keep the circle round
 plt.plot(points[:,0], points[:, 1], ".b",  markersize=3)
 plt.show()
