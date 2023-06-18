@@ -1,6 +1,38 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def generate_circle_grid(radius, step_size):
+    # Define the bounds of the grid based on the radius of the circle
+    x = np.arange(-radius, radius + step_size, step_size)
+    y = np.arange(-radius, radius + step_size, step_size)
+
+    # Create a grid of points
+    x_coords, y_coords = np.meshgrid(x, y)
+
+    # Initialize an empty list to hold the points inside the circle
+    circle_points = []
+
+    angle_max = np.pi*(5/4)
+    angle_min = np.pi
+    # Check each point in the grid to see if it lies within the circle
+    for i in range(x_coords.shape[0]):
+        for j in range(y_coords.shape[1]):
+            # Use the equation of a circle to check if a point lies within the circle
+            if x_coords[i, j]**2 + y_coords[i, j]**2 <= radius**2:
+                # Convert the point to polar coordinates
+                r = np.sqrt(x_coords[i, j]**2 + y_coords[i, j]**2)
+                theta = np.arctan2(y_coords[i, j], x_coords[i, j])
+                
+                # Make sure theta is in range [0, 2pi]
+                if theta < 0:
+                    theta = theta + 2 * np.pi
+
+                # Check if the angle lies within the desired range
+                if theta < angle_min or theta > angle_max:
+                    circle_points.append((x_coords[i, j], y_coords[i, j]))
+
+    return np.array(circle_points) + radius
+
 def generate_line_points(start, end, n_points):
     # Generate a sequence of n_points evenly spaced between 0 and 1
     t = np.linspace(0, 1, n_points)
@@ -32,14 +64,19 @@ def generate_circle_points(radius, n_points):
     points.extend(edge1[1:])
     points.extend(edge2[1:-1])
     
-     # add radius to make all coordinates > 0
+    # Add radius to make all points > 0
     return np.array(points) + radius
 
 # Generate points along a circle with a cut-out piece of 45 degree
-points = generate_circle_points(1200, 50)
-print(points.shape)
+points = generate_circle_points(1200, 300)
+grid = generate_circle_grid(1200, 80)
+
+print("wall pts: %s" % str(points.shape))
+print("area pts: %s" % str(grid.shape))
 
 # Plot results
 plt.gca().set_aspect('equal', adjustable='box')  # To keep the circle round
-plt.plot(points[:,0], points[:, 1], ".b",  markersize=3)
+
+plt.plot(points[:,0], points[:, 1], ".b",  markersize=5)
+plt.plot(grid[:,0], grid[:, 1], "+g",  markersize=5)
 plt.show()
