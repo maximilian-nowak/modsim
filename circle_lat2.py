@@ -43,11 +43,12 @@ error_funcs = [e1, e2, e3]
 # define the loss function
 def loss_func(thetas):
     # thetas are the polar coordinates (angles) of the three anchors
-    theta1, theta2, theta3 = thetas
+    # theta1, theta2, theta3 = thetas
     R = 12000
     # anchor positions in cartesian coordinates
     anchors = [(R*np.cos(theta), R*np.sin(theta)) for theta in thetas]
-
+    anchors.append((0,0))
+    
     # for simplicity, we will compute the average loss over a grid of points in the circle
     grid = generate_circle_grid(12000, 800) - R
     X, Y = np.meshgrid(grid[:, 0], grid[:, 1])
@@ -111,7 +112,8 @@ def generate_circle_points(radius, n_points):
 
 
 # initial guess for anchor positions (equally spaced around the circle)
-thetas_guess = [0, 2*np.pi/3, 4*np.pi/3]
+# thetas_guess = [0, 2*np.pi/3, 4*np.pi/3]
+thetas_guess = [np.pi/2, 6*np.pi/4]
 
 # use Scipy's optimize.minimize function to find the anchor positions that minimize the loss function
 result = minimize(loss_func, thetas_guess, method='SLSQP')
@@ -139,4 +141,5 @@ plt.gca().set_aspect('equal', adjustable='box')  # To keep the circle round
 plt.plot(wall[:,0], wall[:, 1], ".b",  markersize=5)
 plt.plot(grid[:,0], grid[:, 1], "+g",  markersize=5)
 plt.plot(anchors_opt[:, 0], anchors_opt[:, 1], ".r", markersize=5)
+plt.plot(R, R, ".r", markersize=5)
 plt.show()
