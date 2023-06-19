@@ -47,7 +47,7 @@ def penalty_func(anchors, R):
     for i in range(len(anchors)):
         for j in range(i+1, len(anchors)):
             # add the reciprocal of the distance between anchor i and anchor j
-            penalty += R / np.sqrt((anchors[i][0] - anchors[j][0])**2 + (anchors[i][1] - anchors[j][1])**2)
+            penalty += (R/np.sqrt(3)) / np.sqrt((anchors[i][0] - anchors[j][0])**2 + (anchors[i][1] - anchors[j][1])**2)
     return penalty
 
 # define the loss function
