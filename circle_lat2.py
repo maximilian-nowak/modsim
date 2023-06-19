@@ -38,7 +38,17 @@ def generate_circle_grid(radius, step_size):
 def e1(r): return 0.2 + 0.001*r
 def e2(r): return 1.0 + 0.0005*r
 def e3(r): return 0.5 + 0.002*r
+# error_funcs = [e1, e2, e3]
 error_funcs = [e1, e2, e3]
+
+# define a penalty function that increases as the anchors get closer together
+def penalty_func(anchors, R):
+    penalty = 0
+    for i in range(len(anchors)):
+        for j in range(i+1, len(anchors)):
+            # add the reciprocal of the distance between anchor i and anchor j
+            penalty += R / np.sqrt((anchors[i][0] - anchors[j][0])**2 + (anchors[i][1] - anchors[j][1])**2)
+    return penalty
 
 # define the loss function
 def loss_func(thetas):
@@ -50,7 +60,7 @@ def loss_func(thetas):
     anchors.append((0,0))
     
     # for simplicity, we will compute the average loss over a grid of points in the circle
-    grid = generate_circle_grid(12000, 800) - R
+    grid = generate_circle_grid(12000, 700) - R
     X, Y = np.meshgrid(grid[:, 0], grid[:, 1])
 
     # compute the angles of each point (x, y) in the grid, with respect to the origin
@@ -62,7 +72,7 @@ def loss_func(thetas):
     # mask for points outside the 1/8 circle between the angles of PI and (5/4)*PI
     mask = (X**2 + Y**2 <= R**2) & ((angles <= np.pi) | (angles >= 5*np.pi/4))
 
-    # compute the total error for each point in the circle
+    # # compute the total error for each point in the circle
     # total_error = sum(error_func(np.sqrt((X - x_i)**2 + (Y - y_i)**2)) for error_func, (x_i, y_i) in zip(error_funcs, anchors))
 
     # # compute the average loss over the points in the circle
@@ -73,6 +83,8 @@ def loss_func(thetas):
 
     # compute the root mean square error (RMSE) over the points in the circle
     loss = np.sqrt(np.sum(total_squared_error*mask) / np.sum(mask))
+    
+    loss += penalty_func(anchors, R)
     
     return loss
 
@@ -113,7 +125,8 @@ def generate_circle_points(radius, n_points):
 
 # initial guess for anchor positions (equally spaced around the circle)
 # thetas_guess = [0, 2*np.pi/3, 4*np.pi/3]
-thetas_guess = [np.pi/2, 6*np.pi/4]
+# thetas_guess = [np.pi/2, 6*np.pi/4]
+thetas_guess = [0.78, 5.49]  # 45 and 315 degrees
 
 # use Scipy's optimize.minimize function to find the anchor positions that minimize the loss function
 result = minimize(loss_func, thetas_guess, method='SLSQP')
@@ -124,13 +137,17 @@ print("Optimal anchor positions (in radians):", thetas_opt)
 
 # convert to cartesian coordinates
 R = 12000
+# thetas_opt = np.where(thetas_opt > 6.28319, thetas_opt - 0.7853, thetas_opt)
+# np.rad2deg(np.pi/2)
+# thetas_opt = [-332.75, 27.23]
 anchors_opt = np.array([[R*np.cos(theta), R*np.sin(theta)] for theta in thetas_opt]) + R
+anchors_opt = np.vstack([anchors_opt, [R,R]])
 print("Optimal anchor positions (in cartesian coordinates): \n", anchors_opt)
 
 
 # Generate points along a circle with a cut-out piece of 45 degree
 wall = generate_circle_points(12000, 3000)
-grid = generate_circle_grid(12000, 800)
+grid = generate_circle_grid(12000, 700)
 
 print("wall pts: %s" % str(wall.shape))
 print("area pts: %s" % str(grid.shape))
@@ -138,8 +155,7 @@ print("area pts: %s" % str(grid.shape))
 # Plot results
 plt.gca().set_aspect('equal', adjustable='box')  # To keep the circle round
 
-plt.plot(wall[:,0], wall[:, 1], ".b",  markersize=5)
+plt.plot(wall[:,0], wall[:, 1], ".b",  markersize=3)
 plt.plot(grid[:,0], grid[:, 1], "+g",  markersize=5)
-plt.plot(anchors_opt[:, 0], anchors_opt[:, 1], ".r", markersize=5)
-plt.plot(R, R, ".r", markersize=5)
+plt.plot(anchors_opt[:, 0], anchors_opt[:, 1], ".r", markersize=10)
 plt.show()
