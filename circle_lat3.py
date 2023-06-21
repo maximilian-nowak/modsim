@@ -93,16 +93,14 @@ def loss_func(thetas):
     angles = np.arctan2(Y, X)
     angles = np.where(angles < 0, angles + 2*np.pi, angles)
 
-    # mask for points outside the 1/8 circle between the angles of PI and (5/4)*PI
-    mask = (X**2 + Y**2 <= R**2) & ((angles <= np.pi) | (angles >= 5*np.pi/4))
-
     # compute the total squared error for each point in the circle
     total_squared_error = sum(
         err(np.sqrt((X - x_i)**2 + (Y - y_i)**2))**2
             for err, (x_i, y_i) in zip(error_funcs, anchors)
     )
 
-    # compute the root mean square error (RMSE) over the points in the circle
+    # compute rmse over all points in the circle
+    mask = (X**2 + Y**2 <= R**2) & ((angles <= np.pi) | (angles >= 5*np.pi/4))
     n_valid = np.sum(mask)
     loss = np.sqrt(np.sum(total_squared_error*mask) / np.sum(n_valid))
     
