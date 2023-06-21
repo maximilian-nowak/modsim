@@ -86,6 +86,8 @@ def loss_func(thetas):
     
     loss += penalty_func(anchors, R)
     
+    # TODO: filter out 0.95 quantile ? maybe. or extra monte-carlo simulation afterwards
+
     return loss
 
 def generate_line_points(start, end, n_points):
