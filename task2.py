@@ -27,10 +27,10 @@ def simulate_measurements(x_a, y_a, x, y, sigma, L):
 
 
 # loss function to optimize x1 and x2
-def get_rms(X, Y, anchors):
+def get_rms(X, Y, anchors, L=100):
     R = 12000
     rms_grid = np.zeros(len(X))
-    L = 50  # number of measurements per anchor
+    # L = 2000  # number of measurements per anchor
     
     for i in range(len(rms_grid)):
         total_N = 10**-7
@@ -81,7 +81,7 @@ def loss_func(x0, *args):
     anchors = [(R*np.cos(theta), R*np.sin(theta)) for theta in [theta1, theta2]]
     anchors.append((x,0))
 
-    rms = get_rms(grid[:, 0], grid[:, 1], anchors)
+    rms = get_rms(grid[:, 0], grid[:, 1], anchors, L=500)
     
     return np.quantile(rms[~np.isnan(rms)], 0.95)
     # return (np.sum(rms**2))/len(rms)
@@ -138,7 +138,7 @@ anchors = np.array(anchors)
 
 # Generate points along a circle with a cut-out piece of 45 degree
 
-rms = get_rms(grid[:, 0], grid[:, 1], anchors)
+rms = get_rms(grid[:, 0], grid[:, 1], anchors, L=20)
 rms_95 = np.quantile(rms[~np.isnan(rms)], 0.95)
 # rmse_normalized = (np.abs(rmses)/np.max(rmses))
 
@@ -172,7 +172,7 @@ plt.title('95 %% Quantile of RMS: %.2f' % rms_95)
 # plt.plot(grid[:,0], grid[:, 1], c = cmap(rmse_normalized),  markersize=5)
 plt.plot(wall[:,0], wall[:, 1], ".", color='#222', markersize=1)
 
-plt.scatter(grid[:,0], grid[:, 1], c=rms, cmap=rg_skewed.reversed())
+plt.scatter(grid[:,0], grid[:, 1], c=rms, cmap=cmap.reversed())
 plt.scatter(grid[np.isnan(rms),0], grid[np.isnan(rms), 1], color='#dfdfdf')
 plt.plot(anchors[:, 0], anchors[:, 1], ".", color="red", markersize=15, zorder=2.5)
 plt.show()
