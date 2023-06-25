@@ -60,7 +60,7 @@ def get_rms(X, Y, anchors):
                 dists_err *= mask
                 
                 total_dist_error_sq += (dists_err)**2
-                total_N += np.sum(len(dists_err))
+                total_N += np.sum(mask)
         
         rms_grid[i] = np.sqrt(np.sum(total_dist_error_sq) / total_N)
 
