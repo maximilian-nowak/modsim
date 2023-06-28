@@ -11,9 +11,9 @@ s3 = lambda r: 0.5 + 0.1*r
 # s1 = lambda r: 0.2 + 0.005*r
 # s2 = lambda r: 1.0 + 0.0025*r
 # s3 = lambda r: 0.5 + 0.01*r
-# s1 = lambda r: 0.2 + 0.001*r
-# s2 = lambda r: 1.0 + 0.0005*r
-# s3 = lambda r: 0.5 + 0.002*r
+s1 = lambda r: 0.2 + 0.001*r
+s2 = lambda r: 1.0 + 0.0005*r
+s3 = lambda r: 0.5 + 0.002*r
 sigmas = [s1, s2, s3]
 
 def simulate_measurements(x_a, y_a, x, y, sigma, L):
@@ -139,8 +139,8 @@ def tune_hyperparams(x0, args):
 
 R = 12000
 wall = generate_circle_points(12000, 3000)
-# grid = generate_circle_grid(12000, 700)
-grid = np.array([[6000, 2000], [10000, 3000], [2000,-11000], [-7000, 5000]])
+grid = generate_circle_grid(12000, 700)
+# grid = np.array([[6000, 2000], [10000, 3000], [2000,-11000], [-7000, 5000]])
 
 
 thetas_guess = [np.pi*3/16, 0]# -np.pi*1/64]
@@ -150,7 +150,7 @@ anchors.append((0,0))
 anchors = np.array(anchors)
 
 
-rms, clouds = get_rms(grid[:, 0], grid[:, 1], anchors, L=30)
+rms, clouds = get_rms(grid[:, 0], grid[:, 1], anchors, L=10)
 if len(rms[~np.isnan(rms)]):
     rms_95 = np.quantile(rms[~np.isnan(rms)], 0.95)
 else:
@@ -185,8 +185,8 @@ plt.plot(wall[:,0], wall[:, 1], ".", color='#222', markersize=1)
 plt.scatter(grid[np.isnan(rms),0], grid[np.isnan(rms), 1], color='#dfdfdf')
 plt.scatter(grid[:,0], grid[:, 1], c=rms[:], vmin=0, cmap=vir.reversed())
 
-for i in range(clouds.shape[0]):
-    plt.plot(clouds[i, :,0], clouds[i, :, 1], "r.", markersize=0.5)
+# for i in range(clouds.shape[0]):
+#     plt.plot(clouds[i, :,0], clouds[i, :, 1], "r.", markersize=0.5)
 plt.plot(anchors[:, 0], anchors[:, 1], ".", color="red", markersize=15, zorder=2.5)
 plt.colorbar(label='RMS Error')
 # Hide the right and top spines
