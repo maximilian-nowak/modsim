@@ -233,7 +233,9 @@ plt.axvline(x=rms_95, color='r')
 
 # Add a label at the x-value (adjust the y-value to position the label)
 plt.text(rms_95, 0.05, '95 % Quantil', rotation=90)
-
+plt.title('RMS distribution with 95 % quantile line')
+plt.xlabel('RMS')
+plt.ylabel('Density')
 # ax.plot([rms_95, rms_95], [0, mu], 'r')
 # ax.boxplot(rms)
 
