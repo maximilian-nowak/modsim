@@ -32,8 +32,8 @@ def squared_loss(params, *args):
 
     estim_dist = np.array([np.sqrt((x - anchors[i, 0])**2 + (y - anchors[i, 1])**2) for i in range(anchors.shape[0])])
 
-    diff = np.array([(estim_dist[i] - meas_dist[i])**2 / (1 - sigmas[i](meas_dist)**2) for i in range(anchors.shape[0])])
-    # diff = np.array([(estim_dist[i] - meas_dist[i])**2  for i in range(anchors.shape[0])])
+    # diff = np.array([(estim_dist[i] - meas_dist[i])**2 / (1 - sigmas[i](meas_dist)**2) for i in range(anchors.shape[0])])
+    diff = np.array([(estim_dist[i] - meas_dist[i])**2  for i in range(anchors.shape[0])])
     return np.sum(diff)
 
 
@@ -223,9 +223,22 @@ ax.plot(bins, 1/(sd * np.sqrt(2 * np.pi)) *
                np.exp( - (bins - mu)**2 / (2 * sd**2) ),
          linewidth=2, color='r')
 
+plt.axvline(x=rms_95, color='r')
+# Get current ticks
+# ticks = plt.xticks()[0]
+
+# # Add a tick at the x-value
+# ticks = np.append(ticks, rms_95)
+# plt.xticks(ticks)
+
+# Add a label at the x-value (adjust the y-value to position the label)
+plt.text(rms_95, 0.05, '95 %% Quantil', rotation=90)
+
 # ax.plot([rms_95, rms_95], [0, mu], 'r')
 # ax.boxplot(rms)
 
 plt.show()
 
 # task 3 besser als task 2?
+
+# histogram wegen unterschied was optimierer sieht und tatsächlich rauskommt
