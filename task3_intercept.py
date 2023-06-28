@@ -14,7 +14,7 @@ s3 = lambda r: 0.5 + 0.1*r
 s1 = lambda r: 0.2 + 0.001*r
 s2 = lambda r: 1.0 + 0.0005*r
 s3 = lambda r: 0.5 + 0.002*r
-sigmas = [s1, s2, s3]
+sigmas = [s2, s2, s3]
 
 def simulate_measurements(x_a, y_a, x, y, sigma, L):
     # compute the actual distance from the anchor to the object
@@ -32,8 +32,7 @@ def squared_loss(params, *args):
 
     estim_dist = np.array([np.sqrt((x - anchors[i, 0])**2 + (y - anchors[i, 1])**2) for i in range(anchors.shape[0])])
 
-    diff = np.array([(estim_dist[i] - meas_dist[i])**2 / (1 - sigmas[i](meas_dist)**2) for i in range(anchors.shape[0])])
-    # diff = np.array([(estim_dist[i] - meas_dist[i])**2  for i in range(anchors.shape[0])])
+    diff = np.array([(estim_dist[i] - meas_dist[i])**2 / sigmas[i](estim_dist[i])**2 for i in range(anchors.shape[0])])
     return np.sum(diff)
 
 
@@ -44,7 +43,7 @@ def squared_loss(params, *args):
 
 def find_intersections(anchor_visible, sigmas_visible, anchor_data, initial_guess):
     intercepts = []
-    initial_guess = [0, 0]  # Initial guess for the center coordinates
+    # initial_guess = [0, 0]  # Initial guess for the center coordinates
     anchor_data = np.array(anchor_data)
 
     for i in range(anchor_data.shape[1]):
@@ -110,18 +109,16 @@ def get_rms(X, Y, anchors, L=500):
 
 # loss function to optimize x1 and x2
 def loss_func(x0, *args):
-    theta1, theta2 = x0
+    x, theta1, theta2 = x0
     R, grid = args
     
     # translate positions to cartesian coordinates
     anchors = [(R*np.cos(theta), R*np.sin(theta)) for theta in [theta1, theta2]]
-    anchors.append((0,0))
+    anchors.append((x,0))
 
-    rms, datapoints = get_rms(grid[:, 0], grid[:, 1], anchors, L=10)
+    rms = get_rms(grid[:, 0], grid[:, 1], anchors, L=10)
     
-    # return np.quantile(rms, 0.95)
-    
-    return np.mean(rms[~np.isnan(rms)])
+    return np.quantile(rms[~np.isnan(rms)], 0.95)
     # return (np.sum(rms**2))/len(rms)
 
 def tune_hyperparams(x0, args):
@@ -142,25 +139,19 @@ def tune_hyperparams(x0, args):
 
 R = 12000
 wall = generate_circle_points(12000, 3000)
-grid = generate_circle_grid(12000, 1000)
-# grid = np.array([[-2000, -3000],[6000, 2000], [10000, 3000], [2000,-11000], [-7000, 5000]])
+grid = generate_circle_grid(12000, 700)
+# grid = np.array([[6000, 2000], [10000, 3000], [2000,-11000], [-7000, 5000]])
 
 
 thetas_guess = [np.pi*0.25, 0]# -np.pi*1/64]
 anchors = []
-anchors = [(R*np.cos(theta), R*np.sin(theta)) for theta in thetas_guess]
+# anchors = [(R*np.cos(theta), R*np.sin(theta)) for theta in thetas_guess]
+anchors.append((0000,6000))
+anchors.append((6000,-6000))
 anchors.append((0,0))
-anchors = np.array(anchors)
 
-# minimize the loss function
-# x0 = thetas_guess
-# # bnds = [(-R, 0), (np.pi*(1/4), np.pi/2), (np.pi*2*(7/8), np.pi*2*(9/8))]
-# result = minimize(loss_func, x0, args=(R, grid), method='L-BFGS-B')
-# theta1_opt, theta2_opt = result.x
-# anchors = []
-# anchors = [(R*np.cos(theta), R*np.sin(theta)) for theta in result.x]
-# anchors.append((0,0))
-# anchors = np.array(anchors)
+
+anchors = np.array(anchors)
 
 
 rms, clouds = get_rms(grid[:, 0], grid[:, 1], anchors, L=10)
@@ -216,16 +207,14 @@ plt.show()
 
 fig, ax = plt.subplots(1, 1)#2, figsize=(10, 5))
 
-count, bins, ignored = ax.hist(rms, bins=50, density=True)
-mu = np.mean(rms)
-sd = np.std(rms)
-ax.plot(bins, 1/(sd * np.sqrt(2 * np.pi)) *
-               np.exp( - (bins - mu)**2 / (2 * sd**2) ),
-         linewidth=2, color='r')
+# count, bins, ignored = ax.hist(rms, bins=50, density=True)
+# mu = np.mean(rms)
+# sd = np.std(rms)
+# ax.plot(bins, 1/(sd * np.sqrt(2 * np.pi)) *
+#                np.exp( - (bins - mu)**2 / (2 * sd**2) ),
+#          linewidth=2, color='r')
 
 # ax.plot([rms_95, rms_95], [0, mu], 'r')
-# ax.boxplot(rms)
+ax.boxplot(rms)
 
 plt.show()
-
-# task 3 besser als task 2?
