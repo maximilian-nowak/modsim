@@ -32,9 +32,10 @@ def squared_loss(params, *args):
 
     estim_dist = np.array([np.sqrt((x - anchors[i, 0])**2 + (y - anchors[i, 1])**2) for i in range(anchors.shape[0])])
 
-    # diff = np.array([(estim_dist[i] - meas_dist[i])**2 / (1 - sigmas[i](meas_dist)**2) for i in range(anchors.shape[0])])
-    diff = np.array([(estim_dist[i] - meas_dist[i])**2  for i in range(anchors.shape[0])])
-    return np.sum(diff)
+    # diff = np.array([(estim_dist[i] - meas_dist[i])**2 / (sigmas[i](meas_dist)**2) for i in range(anchors.shape[0])])
+    # diff = np.array([(estim_dist[i] - meas_dist[i])**2 / (1 + sigmas[i](meas_dist)**2) for i in range(anchors.shape[0])])
+    diff_sq = np.array([(estim_dist[i] - meas_dist[i])**2  for i in range(anchors.shape[0])])
+    return np.sum(diff_sq)
 
 
     # dists_real = np.sum((anchors - np.array([x, y]))**2, axis=1)
@@ -163,7 +164,7 @@ anchors = np.array(anchors)
 # anchors = np.array(anchors)
 
 
-rms, clouds = get_rms(grid[:, 0], grid[:, 1], anchors, L=10)
+rms, clouds = get_rms(grid[:, 0], grid[:, 1], anchors, L=20)
 if len(rms[~np.isnan(rms)]):
     rms_95 = np.quantile(rms[~np.isnan(rms)], 0.95)
 else:
@@ -196,11 +197,12 @@ plt.title('95 %% Quantile of RMS: %.2f' % rms_95)
 plt.plot(wall[:,0], wall[:, 1], ".", color='#222', markersize=1)
 
 
-plt.scatter(grid[np.isnan(rms),0], grid[np.isnan(rms), 1], color='#dfdfdf')
-plt.scatter(grid[:,0], grid[:, 1], c=rms[:], vmin=0, cmap=vir.reversed())
+plt.scatter(grid[np.isnan(rms),0], grid[np.isnan(rms), 1], s=60, color='#dfdfdf')
+plt.scatter(grid[:,0], grid[:, 1], c=rms[:], s=60, vmin=0, cmap=vir.reversed())
 
 for i in range(clouds.shape[0]):
     plt.plot(clouds[i, :,0], clouds[i, :, 1], "r.", markersize=0.5)
+    
 plt.plot(anchors[:, 0], anchors[:, 1], ".", color="red", markersize=15, zorder=2.5)
 plt.colorbar(label='RMS Error')
 # Hide the right and top spines
@@ -232,10 +234,10 @@ plt.axvline(x=rms_95, color='r')
 # plt.xticks(ticks)
 
 # Add a label at the x-value (adjust the y-value to position the label)
-plt.text(rms_95, 0.05, '95 % Quantil', rotation=90)
-plt.title('RMS distribution with 95 % quantile line')
-plt.xlabel('RMS')
-plt.ylabel('Density')
+plt.text(rms_95, 0.05, '95 % qantile', rotation=90)
+plt.title('RMS distribution of grid points')
+plt.xlabel('RMS value')
+plt.ylabel('density')
 # ax.plot([rms_95, rms_95], [0, mu], 'r')
 # ax.boxplot(rms)
 
