@@ -183,8 +183,14 @@ print("area pts: %s" % str(grid.shape))
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.ticker as ticker
-fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 4))  # Adjust figsize as needed
-plt.suptitle('Variance of three measurement devices')
+from matplotlib.gridspec import GridSpec
+
+fig = plt.figure(figsize=(12, 4))  # Adjust figsize as needed
+fig.suptitle('Variance of the 3 measurement devices across the grid')
+gs = GridSpec(1, 4, width_ratios=[1, 1, 1, 0.05])  # Divide the figure into 4 columns, with the last column for the colorbar
+
+axes = [fig.add_subplot(gs[0, i]) for i in range(3)]  # Create subplots in the first 3 columns
+cbar_ax = fig.add_subplot(gs[0, 3])  # Create a subplot for the colorbar in the last column
 
 for i, data in enumerate([variances1, variances2, variances3]):
     ax = axes[i]
@@ -198,27 +204,24 @@ for i, data in enumerate([variances1, variances2, variances3]):
     scatter = ax.scatter(grid[:, 0], grid[:, 1], c=data, s=60, vmin=0, vmax=500, cmap='viridis_r')
 
     ax.plot(anchors[:, 0], anchors[:, 1], ".", color="red", markersize=15, zorder=2.5)
-    
-    # Create a colorbar using the ScalarMappable object
 
-    
     # Hide the right and top spines
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
- 
     # Only show ticks on the left and bottom spines
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     ax.set_xlabel(r"distance [mm] $(\times 10^{3}$)")
     ax.set_ylabel(r"distance [mm] $(\times 10^{3}$)")
-    # Adjust the y-axis tick labels using a FuncFormatter
+    
+    # Adjust the y-axis and x-axis tick labels using a FuncFormatter
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x/1000:.0f}'))
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x/1000:.0f}'))
 
+# Create a colorbar using the ScalarMappable object
+cbar = plt.colorbar(scatter, cax=cbar_ax, label='Variance')
 
-    #
-# cbar = plt.colorbar(scatter,label='Variance')
 plt.tight_layout()  # Optional: adjust spacing between subplots
 plt.show()
 
