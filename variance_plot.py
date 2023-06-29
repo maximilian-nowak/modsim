@@ -134,11 +134,29 @@ def get_variances(X, Y, anchor, sigma):
     variances = np.zeros(len(X))
     for i in range(len(variances)):
         
-        # determine distance to current point
-        d = np.sqrt((X[i]-anchor[0])**2 + (Y[i]-anchor[1])**2)
-        
-        # determine variance 
-        variances[i] = sigma(d)**2
+        # determine angle of grid point
+        g_angle = np.arctan2(Y[i], X[i])
+        g_angle = np.where(g_angle < 0, g_angle + 2*np.pi, g_angle)
+
+        x_a, y_a = tuple(anchor)
+        angle_i = np.arctan2(y_a, x_a)
+        angle_i = np.where(angle_i < 0, angle_i + 2*np.pi, angle_i)
+        section_start, section_end = np.pi, 5*np.pi/4
+        if(angle_i > np.pi):
+            section_start = angle_i - np.pi
+        else:
+            if(angle_i > np.pi/4):
+                section_end = angle_i + np.pi
+                
+        # check if grid point is within visible region and if so, perform measurements
+        if (g_angle <= section_start) or (g_angle >= section_end):
+            # determine distance to current point
+            d = np.sqrt((X[i]-anchor[0])**2 + (Y[i]-anchor[1])**2)
+            
+            # determine variance 
+            variances[i] = sigma(d)**2
+        else:
+            variances[i] = np.NaN
     
     return variances
         
@@ -146,18 +164,18 @@ R = 12000
 wall = generate_circle_points(12000, 3000)
 grid = generate_circle_grid(12000, 850) # 850
 
-thetas_guess = [np.pi*1/8]#, np.pi*0.14, -np.pi*2]# -np.pi*1/64]
-anchors = []
-# anchors = [(R*np.cos(theta), R*np.sin(theta)) for theta in thetas_guess]
-anchors.append((0,0))
+thetas_guess = [np.pi*0.5, np.pi*0.14]#, np.pi*1.5]# -np.pi*1/64]
+# anchors = []
+anchors = [(R*np.cos(theta), R*np.sin(theta)) for theta in thetas_guess]
+anchors.append((0.5*R*np.cos(np.pi*1.25), 0.5*R*np.sin(np.pi*1.25)))
 anchors = np.array(anchors)
 
 
 
 # rms, clouds = get_rms(grid[:, 0], grid[:, 1], anchors, L=10)
 variances1 = get_variances(grid[:, 0], grid[:, 1], anchors[0], s1)
-variances2 = get_variances(grid[:, 0], grid[:, 1], anchors[0], s2)
-variances3 = get_variances(grid[:, 0], grid[:, 1], anchors[0], s3)
+variances2 = get_variances(grid[:, 0], grid[:, 1], anchors[1], s2)
+variances3 = get_variances(grid[:, 0], grid[:, 1], anchors[2], s3)
 
 # Plot results
 # wall += R
@@ -186,7 +204,7 @@ import matplotlib.ticker as ticker
 from matplotlib.gridspec import GridSpec
 
 fig = plt.figure(figsize=(12, 4))  # Adjust figsize as needed
-fig.suptitle('Variance of the 3 measurement devices across the grid')
+fig.suptitle(r'Variance of the 3 measurement devices across the grid')
 gs = GridSpec(1, 4, width_ratios=[1, 1, 1, 0.05])  # Divide the figure into 4 columns, with the last column for the colorbar
 
 axes = [fig.add_subplot(gs[0, i]) for i in range(3)]  # Create subplots in the first 3 columns
@@ -201,10 +219,14 @@ for i, data in enumerate([variances1, variances2, variances3]):
     for wall_patch in get_wall_patches(R):
         ax.add_patch(wall_patch)
 
+    ax.scatter(grid[np.isnan(data),0], grid[np.isnan(data), 1],vmin=0, s=60, color='#dfdfdf')
     scatter = ax.scatter(grid[:, 0], grid[:, 1], c=data, s=60, vmin=0, vmax=500, cmap='viridis_r')
 
-    ax.plot(anchors[:, 0], anchors[:, 1], ".", color="red", markersize=15, zorder=2.5)
+    ax.plot(anchors[i, 0], anchors[i, 1], ".", color="red", markersize=15, zorder=2.5)
 
+    ax.set_xticks([-12000, -6000, 0, 6000, 12000])
+    ax.set_yticks([-12000, -6000, 0, 6000, 12000])
+    
     # Hide the right and top spines
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -219,8 +241,9 @@ for i, data in enumerate([variances1, variances2, variances3]):
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x/1000:.0f}'))
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x/1000:.0f}'))
 
+
 # Create a colorbar using the ScalarMappable object
-cbar = plt.colorbar(scatter, cax=cbar_ax, label='Variance')
+cbar = plt.colorbar(scatter, cax=cbar_ax, label=r'Variance $\sigma^2$')
 
 plt.tight_layout()  # Optional: adjust spacing between subplots
 plt.show()
