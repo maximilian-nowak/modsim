@@ -1,3 +1,3 @@
 # ModSim
 
-This repo includes project assignments to the class "modeling and simulation"
+This repo includes my project assignments of the class "modeling and simulation"
